@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML Test Page</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #0b1220;
+      --text: #e6eef8;
+      --accent: #3b82f6;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071128 0%, #0f172a 100%);color:var(--text);padding:20px;box-sizing:border-box}
+    .container{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:12px;box-shadow: 0 6px 18px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px;font-size:1.25rem}
+    p.lead{margin:0 0 12px;color: #b9c6dd}
+    button{background:var(--accent);border:0;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
+    input, select, textarea{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text)}
+    label{font-size:0.9rem}
+    .row{display:flex;gap:8px}
+    .small{font-size:0.85rem;color:#9fb0d6}
+    canvas{width:100%;height:180px;border-radius:8px;background:#021028;display:block}
+    .preview-img{max-width:100%;border-radius:8px;margin-top:8px}
+    .log{white-space:pre-wrap;background:#071428;padding:10px;border-radius:8px;max-height:180px;overflow:auto;border:1px solid rgba(255,255,255,0.03)}
+    .content-editable{min-height:80px;padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.04);background:transparent;color:var(--text)}
+    footer{margin-top:16px;color:#8ea6da;font-size:0.85rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <main class="card">
+      <h1>Test Page — Interactive Playground</h1>
+      <p class="lead">Use this file to check HTML/CSS/JS behavior. Try editing, saving, and reloading.</p>
+
+      <section>
+        <h2 style="font-size:1rem;margin-top:12px">1. Theme toggle & DOM test</h2>
+        <div class="row" style="margin-bottom:10px">
+          <button id="themeBtn">Toggle Light Theme</button>
+          <button id="logBtn">Log DOM Info</button>
+        </div>
+      </section>
+
+      <section>
+        <h2 style="font-size:1rem;margin-top:12px">2. Form & Validation</h2>
+        <form id="demoForm" class="card" style="padding:12px;background:transparent;box-shadow:none">
+          <label for="name">Name (required)</label>
+          <input id="name" name="name" required placeholder="Type your name" />
+          <label for="age">Age (number)</label>
+          <input id="age" type="number" name="age" min="1" max="150" />
+          <label for="color">Favorite color</label>
+          <input id="color" type="color" value="#3b82f6" />
+          <div style="margin-top:10px" class="row">
+            <button type="submit">Submit</button>
+            <button type="reset" id="resetBtn" style="background:#6b7280">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <h2 style="font-size:1rem;margin-top:12px">3. Canvas drawing</h2>
+        <canvas id="myCanvas" width="600" height="180"></canvas>
+        <div class="small">Click the canvas to add a random circle.</div>
+      </section>
+
+      <section>
+        <h2 style="font-size:1rem;margin-top:12px">4. File upload & preview</h2>
+        <input id="fileInput" type="file" accept="image/*" />
+        <img id="preview" class="preview-img" alt="Preview will appear here" />
+      </section>
+
+      <section>
+        <h2 style="font-size:1rem;margin-top:12px">5. Editable content & live update</h2>
+        <div contenteditable="true" id="editable" class="content-editable">Edit this text — it is contentEditable.</div>
+        <div style="margin-top:8px">
+          <button id="copyBtn">Copy editable text to log</button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="card">
+      <h2 style="font-size:1rem">Inspector / Logs</h2>
+      <div class="small">Events, form data and errors will appear here.</div>
+      <div id="log" class="log" role="log" aria-live="polite"></div>
+
+      <h3 style="font-size:0.95rem;margin-top:12px">Quick tests</h3>
+      <label for="selectTest">Choose a test</label>
+      <select id="selectTest">
+        <option value="time">Show local time</option>
+        <option value="userAgent">Show user agent</option>
+        <option value="storage">Test localStorage</option>
+      </select>
+      <div style="margin-top:8px" class="row">
+        <button id="runTest">Run</button>
+      </div>
+
+      <footer>
+        Tip: open DevTools (F12) to see console logs. Save & reload to test live reload.
+      </footer>
+    </aside>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    function log(...args){
+      const time = new Date().toLocaleTimeString();
+      logEl.textContent = `[${time}] ` + args.map(a => (typeof a === 'object' ? JSON.stringify(a,null,2) : String(a))).join(' ');
+      // keep last entries on top — prepend
+      logEl.textContent = logEl.textContent + "\n" + (logEl.dataset.history ?? "");
+      logEl.dataset.history = logEl.textContent;
+      // also console.log for DevTools
+      console.log(...args);
+    }
+
+    // Theme toggle
+    const themeBtn = document.getElementById('themeBtn');
+    let light = false;
+    themeBtn.addEventListener('click', () => {
+      light = !light;
+      if(light){
+        document.documentElement.style.setProperty('--bg','#f7fafc');
+        document.documentElement.style.setProperty('--card','#ffffff');
+        document.documentElement.style.setProperty('--text','#0b1220');
+        document.documentElement.style.setProperty('--accent','#ef4444');
+      } else {
+        document.documentElement.style.removeProperty('--bg');
+        document.documentElement.style.removeProperty('--card');
+        document.documentElement.style.removeProperty('--text');
+        document.documentElement.style.removeProperty('--accent');
+      }
+      log('Toggled theme. Light=', light);
+    });
+
+    // Form handling
+    const form = document.getElementById('demoForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = {
+        name: form.name.value,
+        age: form.age.value,
+        color: form.color.value
+      };
+      log('Form submitted:', data);
+      alert('Form submitted: ' + JSON.stringify(data));
+    });
+
+    // Canvas drawing
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    function clearCanvas(){
+      ctx.fillStyle = '#021428';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+    clearCanvas();
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const r = Math.random()*30 + 10;
+      ctx.beginPath();
+      ctx.arc(x * (canvas.width/rect.width), y * (canvas.height/rect.height), r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},0.9)`;
+      ctx.fill();
+      log('Canvas: added circle at', Math.round(x), Math.round(y), 'r=', Math.round(r));
+    });
+
+    // File preview
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    fileInput.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if(!f) { preview.src=''; log('File input cleared'); return; }
+      const url = URL.createObjectURL(f);
+      preview.src = url;
+      preview.alt = f.name;
+      log('Loaded file:', f.name, f.size, 'bytes');
+    });
+
+    // Editable copy
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('editable').innerText;
+      log('Editable content:', text);
+      // try clipboard if available
+      if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>log('Copied to clipboard')).catch(()=>log('Clipboard write failed'));
+    });
+
+    // Inspector tests
+    document.getElementById('runTest').addEventListener('click', () => {
+      const sel = document.getElementById('selectTest').value;
+      if(sel === 'time') log('Local time:', new Date().toString());
+      if(sel === 'userAgent') log('User agent:', navigator.userAgent);
+      if(sel === 'storage') {
+        try {
+          localStorage.setItem('testKey','hello-'+Date.now());
+          log('localStorage OK, testKey=', localStorage.getItem('testKey'));
+        } catch (err) {
+          log('localStorage failed:', err.toString());
+        }
+      }
+    });
+
+    // Log DOM info
+    document.getElementById('logBtn').addEventListener('click', () => {
+      const nodes = document.querySelectorAll('input,button,canvas,select,textarea,form, [contenteditable="true"]');
+      log('DOM summary:', {nodeCount: nodes.length, title: document.title, url: location.href});
+    });
+
+    // Simple startup log
+    log('Test page loaded. Ready.');
+  </script>
+</body>
+</html>
